@@ -81,7 +81,7 @@ export default class Game extends AbstractScene {
             mapPlayerStopMovements(this._scene as Scene);
         });
 
-        this._scene.onBeforeRenderObservable.add(() => {
+        this._scene.onBeforeRenderObservable.add(async () => {
             mapPlayerMovements(this._inputMap);
 
             onPlayerCamera();
@@ -91,6 +91,7 @@ export default class Game extends AbstractScene {
             if (this._inputMap['Tab'] && this._onOpenMainMenuCallback) {
                 this._inputMap['Tab'] = false;
                 this._engine.stopRenderLoop();
+                await Engine?.audioEngine?.audioContext?.suspend();
                 this._onOpenMainMenuCallback();
             }
         });
@@ -100,8 +101,10 @@ export default class Game extends AbstractScene {
         await super.onPointerDown();
     }
 
-    public doRender(): void {
+    public async doRender(): Promise<void> {
         super.doRender();
+
+        await Engine?.audioEngine?.audioContext?.resume();
 
         this._engine.runRenderLoop(() => {
             if (this._onRenderingLoopCallback) {

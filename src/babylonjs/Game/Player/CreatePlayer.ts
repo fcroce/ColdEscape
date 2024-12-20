@@ -1,20 +1,25 @@
 import { Scene } from '@babylonjs/core/scene';
 import { Vector3 } from '@babylonjs/core/Maths';
-import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics';
+import {
+    PhysicsAggregate,
+    PhysicsMotionType,
+    PhysicsShapeType,
+} from '@babylonjs/core/Physics';
 import '@babylonjs/core/Loading/Plugins/babylonFileLoader';
 import { SceneLoader } from '@babylonjs/core/Loading';
-import { AnimationRange } from '@babylonjs/core/Animations';
-import { Nullable } from '@babylonjs/core/types';
 import { Mesh, GroundMesh, AbstractMesh } from '@babylonjs/core/Meshes';
-import { Sound } from '@babylonjs/core/Audio';
 import { Ray } from '@babylonjs/core/Culling';
 import createCameras, { mapPlayerCamera, switchCameras } from './Cameras.ts';
-import { PickingInfo } from "@babylonjs/core";
+import { PickingInfo } from '@babylonjs/core/Collisions';
+import PlayerSounds from "./Sounds.ts";
+import PlayerAnimations from './Animations.ts';
 
 export interface PlayerMesh extends AbstractMesh {
+    playerPhysics: PhysicsAggregate;
     isMoving: boolean;
     isMovingSoundOn: boolean;
     walkingOnMeshName: string;
+    interactingWithMeshName: string | null;
     onMoving: ({ direction } : { direction?: string }) => void;
 }
 
@@ -35,44 +40,45 @@ const CreatePlayer = async (
         meshes,
         skeletons,
     } = await SceneLoader.ImportMeshAsync('', '/', 'Low_Poly_Male.babylon', scene);
-    const player =  meshes.find(mesh => mesh.id === 'Cube') as PlayerMesh;
+    const playerMeshes: { [key: string]: AbstractMesh | null } = {
+        player: null,
+        playerHair: null,
+    };
 
-    if (!player) {
+    meshes.forEach((mesh: AbstractMesh) => {
+        if (mesh.id === 'Player') {
+            playerMeshes.player = mesh as PlayerMesh;
+        }
+
+        if (mesh.id === 'Hair') {
+            playerMeshes.playerHair = mesh;
+        }
+    });
+
+    if (!playerMeshes.player) {
         throw new Error('Player Mesh not found');
     }
+
+    if (playerMeshes.playerHair) {
+        playerMeshes.player.addChild(playerMeshes.playerHair);
+    }
+
+    const player =  playerMeshes.player as PlayerMesh;
+
+    const sounds = PlayerSounds(scene);
 
     const groundHeightAtPlayerPosition = ground.getHeightAtCoordinates(player.position.x, player.position.z) + 10;
     player.position.set(0, groundHeightAtPlayerPosition, 0);
 
-    const playerPhysics = new PhysicsAggregate(player, PhysicsShapeType.MESH, { mass: 10, restitution: 0, friction: 50 }, scene);
-    playerPhysics.body.disablePreStep = false;
+    player.playerPhysics = new PhysicsAggregate(player, PhysicsShapeType.CAPSULE, { mass: 1, restitution: 0, friction: 1 }, scene);
+    player.playerPhysics.body.disablePreStep = false;
+    player.playerPhysics.body.setMotionType(PhysicsMotionType.DYNAMIC);
+    player.playerPhysics.body.setCollisionCallbackEnabled(true)
+    player.playerPhysics.body.setMassProperties({ mass: 40, inertia: Vector3.ZeroReadOnly });
+    player.playerPhysics.body.setGravityFactor(20);
 
-    const playerSkeletons = skeletons[0];
-
-    const playerAnimationIdle: Nullable<AnimationRange> = null;
-    const playerAnimationWalk: Nullable<AnimationRange> = playerSkeletons.getAnimationRange('walking');
-    const playerAnimationJump: Nullable<AnimationRange> = playerSkeletons.getAnimationRange('walking');
-
-    const walkingOnSnowSound = new Sound('walkingOnSnowSound', 'human_footsteps_snow.mp3', scene, null, {
-        loop: false,
-        autoplay: false
-    });
-    const walkingOnIceSound = new Sound('walkingOnIceSound', 'human_footsteps_ice.mp3', scene, null, {
-        loop: false,
-        autoplay: false
-    });
-    const walkingOnTilesSound = new Sound('walkingOnTilesSound', 'human_footsteps_tiles.mp3', scene, null, {
-        loop: false,
-        autoplay: false
-    });
-    const fallingOnSnowSound = new Sound('fallingOnSnowSound', 'human_falling_snow.mp3', scene, null, {
-        loop: false,
-        autoplay: false
-    });
-    const fallingOnIceSound = new Sound('fallingOnIceSound', 'human_falling_ice.mp3', scene, null, {
-        loop: false,
-        autoplay: false
-    });
+    const playerSkeleton = skeletons[0];
+    const animations = PlayerAnimations(playerSkeleton);
 
     player.isMoving = false;
     player.isMovingSoundOn = false;
@@ -80,19 +86,19 @@ const CreatePlayer = async (
 
     player.onMoving = (): void => {};
 
-    const ray = new Ray(
-        player.position,
-        new Vector3(0, -1, 0),
-        8
-    );
-    const predicate = (mesh: AbstractMesh) => {
-        return [
-            ice.name,
-            structures.mainHall.name
-        ].includes(mesh.name);
-    };
-
     const pickFloorType = (): PickingInfo | null => {
+        const ray = new Ray(
+            player.position,
+            new Vector3(0, -1, 0),
+            8
+        );
+        const predicate = (mesh: AbstractMesh) => {
+            return [
+                ice.name,
+                structures.mainHall.name
+            ].includes(mesh.name);
+        };
+
         const pick = scene.pickWithRay(ray, predicate, true);
 
         if (pick?.hit) {
@@ -104,24 +110,52 @@ const CreatePlayer = async (
         return pick;
     };
 
+    const pickObjectInteraction = (): PickingInfo | null => {
+        const ray = new Ray(
+            player.position,
+            new Vector3(0, 0, -1),
+            5
+        );
+        const predicate = (mesh: AbstractMesh) => {
+            return ![
+                player.name,
+                ground.name,
+                ice.name,
+                structures.mainHall.name
+            ].includes(mesh.name);
+        };
+
+        const pick = scene.pickWithRay(ray, predicate, true);
+
+        if (pick?.hit) {
+            player.interactingWithMeshName = pick?.pickedMesh?.name || null;
+
+            console.log('asd', player.interactingWithMeshName)
+        } else {
+            player.interactingWithMeshName = null;
+        }
+
+        return pick;
+    };
+
     const animatePlayerIdle = () => {
         player.isMoving = false;
         player.isMovingSoundOn = false;
 
-        walkingOnSnowSound.stop();
-        walkingOnIceSound.stop();
-        walkingOnTilesSound.stop();
-        fallingOnSnowSound.stop();
-        fallingOnIceSound.stop();
+        sounds.walkingOnSnow.stop();
+        sounds.walkingOnIce.stop();
+        sounds.walkingOnTiles.stop();
+        sounds.fallingOnSnow.stop();
+        sounds.fallingOnIce.stop();
 
-        if (!playerAnimationIdle) {
+        if (!animations.idle) {
             return;
         }
 
         scene.beginAnimation(
-            playerSkeletons,
-            (playerAnimationIdle as AnimationRange).from,
-            (playerAnimationIdle as AnimationRange).to,
+            playerSkeleton,
+            (animations.idle).from,
+            (animations.idle).to,
             true,
             1.0
         );
@@ -130,50 +164,48 @@ const CreatePlayer = async (
     const animatePlayerWalking = () => {
         player.isMoving = true;
 
-        if (!playerAnimationWalk) {
+        if (!animations.walkingForward) {
             return;
         }
 
-        scene.stopAllAnimations();
         scene.beginAnimation(
-            playerSkeletons,
-            (playerAnimationWalk as AnimationRange).from + 1,
-            (playerAnimationWalk as AnimationRange).to,
+            playerSkeleton,
+            (animations.walkingForward).from + 1,
+            (animations.walkingForward).to,
             false,
             1.0,
             () => {
                 animatePlayerIdle();
-            }
+            },
         );
 
         pickFloorType();
+        pickObjectInteraction();
     };
     const addSoundToPlayerWalking = () => {
         player.isMovingSoundOn = true;
 
         if (player.walkingOnMeshName === ice.name) {
-            walkingOnIceSound.play();
+            sounds.walkingOnIce.play();
         } else if (player.walkingOnMeshName === structures.mainHall.name) {
-            walkingOnTilesSound.play();
+            sounds.walkingOnTiles.play();
         } else {
-            walkingOnSnowSound.play();
+            sounds.walkingOnSnow.play();
         }
     };
 
     const animatePlayerJumping = () => {
         player.isMoving = true;
 
-        if (!playerAnimationJump) {
+        if (!animations.jumping) {
             return;
         }
 
         scene.stopAllAnimations();
         scene.beginAnimation(
-            playerSkeletons,
-            (playerAnimationWalk as AnimationRange).from + 1,
-            (playerAnimationWalk as AnimationRange).to,
-            // (playerAnimationJump as AnimationRange).from,
-            // (playerAnimationJump as AnimationRange).to,
+            playerSkeleton,
+            (animations.jumping).from + 1,
+            (animations.jumping).to,
             false,
             1.0,
             () => {
@@ -187,11 +219,11 @@ const CreatePlayer = async (
         player.isMovingSoundOn = true;
 
         if (player.walkingOnMeshName === ice.name) {
-            fallingOnIceSound.play();
+            sounds.fallingOnIce.play();
         } else if (player.walkingOnMeshName === structures.mainHall.name) {
-            walkingOnTilesSound.play();
+            sounds.walkingOnTiles.play();
         } else {
-            fallingOnSnowSound.play();
+            sounds.fallingOnSnow.play();
         }
     };
 
@@ -208,7 +240,7 @@ const CreatePlayer = async (
         forwardSpeed: 0.5,
         backwardSpeed: 0.3,
         strafeSpeed: 0.3,
-        jumpSpeed: 0.3,
+        jumpSpeed: 2,
     };
 
     const mapPlayerMovements = (inputMap: { [key: string]: boolean }) => {

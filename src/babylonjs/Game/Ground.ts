@@ -42,7 +42,7 @@ export const createGround = (
 
                     ground.material = groundMaterial;
 
-                    new PhysicsAggregate(ground, PhysicsShapeType.MESH, { mass: 0, restitution: 0, friction: 50 }, scene);
+                    new PhysicsAggregate(ground, PhysicsShapeType.MESH, { mass: 0, restitution: 0, friction: 1 }, scene);
 
                     const walls = createWalls(scene, groundAvailable);
 

@@ -3,6 +3,7 @@ import { ParticleSystem } from '@babylonjs/core/Particles';
 import { Scene } from '@babylonjs/core/scene';
 import { Texture } from '@babylonjs/core/Materials/Textures';
 import { Color4, Vector3 } from '@babylonjs/core/Maths';
+import { StandardMaterial } from '@babylonjs/core/Materials';
 
 const Snow = ({
     scene,
@@ -24,6 +25,10 @@ const Snow = ({
 } => {
     const snowfall = CreateBox('snowfall', { size: 0.2 }, scene);
     const snowSystem = new ParticleSystem('snowParticles', snowCount, scene);
+    const snowMaterial = new StandardMaterial('snowMaterial', scene);
+
+    snowMaterial.alpha = 0;
+    snowfall.material = snowMaterial;
 
     if(snowTexture) {
         snowSystem.particleTexture = new Texture(snowTexture, scene);

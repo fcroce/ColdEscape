@@ -69,7 +69,9 @@ const continueGame = () => {
 </script>
 
 <template>
-  <div>
+  <div id="game-container">
+    <div>Press { TAB } to pause/resume the game</div>
+
     <div id="game-web-wrapper">
       <div id="main-menu-background" :class="{ 'hide-main-menu': !showMainMenu }"></div>
       <div id="main-menu" :class="{ 'hide-main-menu': !showMainMenu }">
@@ -78,13 +80,19 @@ const continueGame = () => {
         <div v-if="!isGameRunning" @click="startGame" class="start-continue-game">START GAME</div>
         <div v-if="isGameRunning" @click="continueGame" class="start-continue-game">CONTINUE GAME</div>
       </div>
-      <canvas id="cold-escape" width="1000" height="500" />
+      <canvas id="cold-escape" />
       <div id="cold-escape-fps-meter"></div>
     </div>
   </div>
 </template>
 
 <style scoped>
+#game-container {
+  width: 75rem;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+}
+
 #cold-escape-fps-meter {
   position: absolute;
   bottom: 1rem;
@@ -95,8 +103,9 @@ const continueGame = () => {
 
 #game-web-wrapper {
   position: relative;
-  width: 62.5rem;
-  height: 31.25rem;
+  width: 100%;
+  height: 100%;
+  margin: 1rem auto 0;
 }
 
 #main-menu-background, #main-menu, #cold-escape {
