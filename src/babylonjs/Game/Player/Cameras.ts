@@ -45,6 +45,8 @@ export const mapPlayerCamera = (
 
         player.rotationQuaternion = Quaternion.FromEulerAngles(0, firstViewCameraRotationY - Math.PI, 0);
         firstViewCamera.position.set(player.position.x, player.position.y + firstViewCameraYPosition, player.position.z);
+        const asd = firstViewCamera.getDirection(Vector3.Forward());
+        firstViewCamera.position.set(player.position.x + asd.x, player.position.y + firstViewCameraYPosition, player.position.z + asd.z);
     }
 
     else if (scene.activeCamera?.name === 'PlayerThirdViewCamera') {

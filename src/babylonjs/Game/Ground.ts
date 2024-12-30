@@ -33,7 +33,8 @@ export const createGround = (
                 maxHeight: 200,
                 onReady: () => {
                     const groundTexture = new Texture('snow.jpg', scene);
-                    groundTexture.vScale = groundTexture.uScale = 30;
+                    groundTexture.vScale = 800;
+                    groundTexture.uScale = 800;
 
                     const groundMaterial = new StandardMaterial('groundMaterial', scene);
                     groundMaterial.diffuseTexture = groundTexture;
@@ -72,6 +73,9 @@ export const createGround = (
 
 const createIce = (scene: Scene, size: number, world: Mesh): GroundMesh => {
     const iceTexture = new Texture('ice.jpg', scene);
+    iceTexture.vScale = 350;
+    iceTexture.uScale = 350;
+
     const iceReflectionTexture = new MirrorTexture('iceReflectionTexture', size, scene, true);
     iceReflectionTexture.mirrorPlane = new Plane(0, -1.0, 0, -2.0);
     iceReflectionTexture.renderList = [ world ];
@@ -93,17 +97,17 @@ const createIce = (scene: Scene, size: number, world: Mesh): GroundMesh => {
     ice.position.set(0, 0, 0);
     ice.material = iceMaterial;
 
-    new PhysicsAggregate(ice, PhysicsShapeType.MESH, { mass: 0, restitution: 0, friction: 0 }, scene);
+    new PhysicsAggregate(ice, PhysicsShapeType.MESH, { mass: 0, restitution: 0, friction: 1 }, scene);
 
     return ice;
 };
 
 const createWalls = (scene: Scene, groundAvailable: number) => {
-    const wallMaterial = new StandardMaterial('wall1Material', scene);
+    const wallMaterial = new StandardMaterial('wallsMaterial', scene);
     wallMaterial.alpha = 0;
     wallMaterial.backFaceCulling = true;
 
-    const walls = CreateBox('wall1', {
+    const walls = CreateBox('walls', {
         width: groundAvailable,
         height: 500,
         depth: groundAvailable,

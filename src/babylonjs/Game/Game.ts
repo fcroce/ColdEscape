@@ -65,7 +65,7 @@ export default class Game extends AbstractScene {
             changeSnowEmitterPosition,
         } = await createGround(this._scene, this._worldSize, this._worldAvailable, { world });
 
-        const { structures } = await createStructures(this._scene, ground);
+        const { structures } = await createStructures(ground);
 
         const {
             player,
