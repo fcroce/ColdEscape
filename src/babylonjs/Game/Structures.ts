@@ -5,19 +5,6 @@ import { StandardMaterial } from '@babylonjs/core/Materials';
 import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics';
 import { Vector3 } from '@babylonjs/core/Maths';
 
-export const createStructures = (ground: GroundMesh): Promise<{
-    structures: { [key: string]: Mesh },
-}> => {
-    return new Promise(async (resolve) => {
-        const structures: { [key: string]: Mesh } = {};
-
-        structures['mainHall'] = await loadMainHall(ground);
-        structures['moduleLarge'] = await loadModuleLarge(ground);
-
-        resolve({ structures });
-    });
-};
-
 const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
     const { meshes } = await SceneLoader.ImportMeshAsync('', '/', 'Dome.glb', scene);
@@ -53,4 +40,17 @@ const loadModuleLarge = async (ground: GroundMesh): Promise<Mesh> => {
     moduleLargePhysics.body.setMassProperties({ mass: 1, inertia: Vector3.ZeroReadOnly });
 
     return moduleLarge;
+};
+
+export const createStructures = (ground: GroundMesh): Promise<{
+    structures: { [key: string]: Mesh },
+}> => {
+    return new Promise(async (resolve) => {
+        const structures: { [key: string]: Mesh } = {};
+
+        structures['mainHall'] = await loadMainHall(ground);
+        structures['moduleLarge'] = await loadModuleLarge(ground);
+
+        resolve({ structures });
+    });
 };
