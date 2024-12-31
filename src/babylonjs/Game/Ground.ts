@@ -60,7 +60,7 @@ export const createGround = (
                     new Sound('Wind', 'cold_wind.mp3', scene, null, {
                         loop: true,
                         autoplay: true,
-                        volume: 0.1
+                        volume: 0.3
                     });
 
                     resolve({ ground, walls, ice, changeSnowEmitterPosition });

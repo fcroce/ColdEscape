@@ -13,14 +13,14 @@ const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
 
     mainHall.position.y = ground.getHeightAtCoordinates(mainHall.position.x, mainHall.position.z) + 0.1;
 
-    const mainHallPhysics = new PhysicsAggregate(mainHall, PhysicsShapeType.MESH, { mass: 0 }, scene);
+    const mainHallPhysics = new PhysicsAggregate(mainHall, PhysicsShapeType.MESH, { mass: 0, friction: 1 }, scene);
     mainHallPhysics.body.setMassProperties({ mass: 1, inertia: Vector3.ZeroReadOnly });
 
     const item1 = CreateBox('item1', { width: 10, height: 10, depth: 10 }, scene);
     item1.position.set(mainHall.position.x, mainHall.position.y + 6, mainHall.position.z + 20);
     item1.material = new StandardMaterial('item1Material', scene);
 
-    const item1Physics = new PhysicsAggregate(item1, PhysicsShapeType.MESH, { mass: 0 }, scene);
+    const item1Physics = new PhysicsAggregate(item1, PhysicsShapeType.BOX, { mass: 0 }, scene);
     item1Physics.body.setMassProperties({ mass: 1, inertia: Vector3.ZeroReadOnly });
 
     mainHall.addChild(item1);

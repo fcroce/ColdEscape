@@ -20,9 +20,11 @@ export interface PlayerMesh extends Mesh {
     playerPhysics: PhysicsAggregate;
     isMoving: boolean;
     isMovingSoundOn: boolean;
+    isFalling: boolean;
     walkingOnMeshName: string;
     interactingWithMeshName: string | null;
     onMoving: ({ direction, isRunning } : { direction?: string, isRunning?: boolean }) => void;
+    onTouchDown: () => void;
 }
 
 const CreatePlayer = async (
@@ -70,8 +72,14 @@ const CreatePlayer = async (
     player.isVisible = false;
     player.addChild(playerMeshes.player);
 
-    const groundHeightAtPlayerPosition = (): number => ground.getHeightAtCoordinates(player.position.x, player.position.z) + 3.8;
-    player.position.set(0, groundHeightAtPlayerPosition(), 0);
+    const groundHeightAtPlayerPosition = (): number => {
+        const groundHeightAtCoordinates = ground.getHeightAtCoordinates(player.position.x, player.position.z);
+
+        return groundHeightAtCoordinates < ice.position.y
+            ? ice.position.y + 3.8
+            : groundHeightAtCoordinates + 3.8;
+    }
+    player.position.set(0, groundHeightAtPlayerPosition(), -100);
 
     player.playerPhysics = new PhysicsAggregate(player, PhysicsShapeType.CAPSULE, { mass: 1, restitution: 0, friction: 1 }, scene);
     player.playerPhysics.body.disablePreStep = false;
@@ -100,6 +108,9 @@ const CreatePlayer = async (
         if (direction === Directions.RIGHT) {
             animations.actions.onStrifeRight(isRunning);
         }
+    };
+    player.onTouchDown = (): void => {
+        console.log('Touch Down!')
     };
 
     // player.isMovingSoundOn = false;
@@ -246,11 +257,11 @@ const CreatePlayer = async (
     // animatePlayerIdle();
 
     const playerMovements = {
-        runningMultiplier: 2,
-        forwardSpeed: 30,
-        backwardSpeed: 10,
-        strafeSpeed: 15,
-        jumpSpeed: 10,
+        runningMultiplier: 1.5,
+        forwardSpeed: 50,
+        backwardSpeed: 45,
+        strafeSpeed: 45,
+        jumpSpeed: 80,
     };
 
     const mapPlayerMovements = (inputMap: { [key: string]: boolean }) => {
@@ -263,7 +274,15 @@ const CreatePlayer = async (
             player.position.y = groundHeight;
         }
 
-        const currentPlayerPositionBeforeWalls = player.position;
+        const groundMidAirPosition = groundHeight + 1;
+
+        if (player.isFalling && player.position.y <= groundMidAirPosition) {
+            player.onTouchDown();
+        }
+
+        player.isFalling = player.position.y > groundMidAirPosition;
+
+        const currentPlayerPositionBeforeMoving = player.position;
 
         let isRunning = false;
         if (inputMap['Shift']) {
@@ -310,16 +329,11 @@ const CreatePlayer = async (
             // }
         }
 
-        if(inputMap[' ']) {
-            player.playerPhysics.body.setLinearVelocity(player.up.scaleInPlace(playerMovements.jumpSpeed));
+        if(inputMap[' '] && !player.isFalling) {
+            vectors.push(player.up.scaleInPlace(playerMovements.jumpSpeed));
+            player.isFalling = true;
             player.onMoving({ direction: Directions.JUMP });
 
-            // // TODO - Fix animation and sound
-            //
-            // if (!player.isMoving) {
-            //     // animatePlayerJumping();
-            // }
-            //
             // if (!player.isMovingSoundOn) {
             //     // addSoundToPlayerFalling();
             // }
@@ -329,17 +343,18 @@ const CreatePlayer = async (
             const direction = vectors.reduce((acc, cur) => {
                 acc = acc.add(cur);
                 return acc;
-            }, new Vector3(0, GRAVITY_ON_LAND, 0));
+            }, new Vector3(0, player.isFalling ? player.playerPhysics.body.getLinearVelocity().y : GRAVITY_ON_LAND, 0));
 
             player.playerPhysics.body.setLinearVelocity(direction);
-            player.playerPhysics.body.setGravityFactor(40);
         }
+
+        player.playerPhysics.body.setGravityFactor(player.isFalling ? 40 : 200);
 
         if (!player.intersectsMesh(walls)) {
             player.position = new Vector3(
-                currentPlayerPositionBeforeWalls.x > 0 ? currentPlayerPositionBeforeWalls.x - 1 : currentPlayerPositionBeforeWalls.x + 1,
+                currentPlayerPositionBeforeMoving.x > 0 ? currentPlayerPositionBeforeMoving.x - 1 : currentPlayerPositionBeforeMoving.x + 1,
                 player.position.y,
-                currentPlayerPositionBeforeWalls.z > 0 ? currentPlayerPositionBeforeWalls.z - 1 : currentPlayerPositionBeforeWalls.z + 1,
+                currentPlayerPositionBeforeMoving.z > 0 ? currentPlayerPositionBeforeMoving.z - 1 : currentPlayerPositionBeforeMoving.z + 1,
             );
         }
     };
