@@ -97,7 +97,7 @@ const createIce = (scene: Scene, size: number, world: Mesh): GroundMesh => {
     ice.position.set(0, 0, 0);
     ice.material = iceMaterial;
 
-    new PhysicsAggregate(ice, PhysicsShapeType.MESH, { mass: 0, restitution: 0, friction: 1 }, scene);
+    new PhysicsAggregate(ice, PhysicsShapeType.MESH, { mass: 0, restitution: 0, friction: 0.01 }, scene);
 
     return ice;
 };
