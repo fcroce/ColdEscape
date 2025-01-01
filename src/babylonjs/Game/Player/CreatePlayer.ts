@@ -258,7 +258,7 @@ const CreatePlayer = async (
 
     const playerMovements = {
         runningMultiplier: 1.5,
-        forwardSpeed: 50,
+        forwardSpeed: 60,
         backwardSpeed: 45,
         strafeSpeed: 45,
         jumpSpeed: 80,

@@ -5,6 +5,8 @@ import { StandardMaterial } from '@babylonjs/core/Materials';
 import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics';
 import { Vector3 } from '@babylonjs/core/Maths';
 
+export const STRUCTURES_FRICTION = 0.6;
+
 const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
     const { meshes } = await SceneLoader.ImportMeshAsync('', '/', 'Dome.glb', scene);
@@ -13,7 +15,7 @@ const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
 
     mainHall.position.y = ground.getHeightAtCoordinates(mainHall.position.x, mainHall.position.z) + 0.1;
 
-    const mainHallPhysics = new PhysicsAggregate(mainHall, PhysicsShapeType.MESH, { mass: 0, friction: 1 }, scene);
+    const mainHallPhysics = new PhysicsAggregate(mainHall, PhysicsShapeType.MESH, { mass: 0, friction: STRUCTURES_FRICTION }, scene);
     mainHallPhysics.body.setMassProperties({ mass: 1, inertia: Vector3.ZeroReadOnly });
 
     const item1 = CreateBox('item1', { width: 10, height: 10, depth: 10 }, scene);
@@ -36,7 +38,7 @@ const loadModuleLarge = async (ground: GroundMesh): Promise<Mesh> => {
 
     moduleLarge.position.y = ground.getHeightAtCoordinates(moduleLarge.position.x, moduleLarge.position.z) + 43;
 
-    const moduleLargePhysics = new PhysicsAggregate(moduleLarge, PhysicsShapeType.MESH, { mass: 0 }, scene);
+    const moduleLargePhysics = new PhysicsAggregate(moduleLarge, PhysicsShapeType.MESH, { mass: 0, friction: STRUCTURES_FRICTION }, scene);
     moduleLargePhysics.body.setMassProperties({ mass: 1, inertia: Vector3.ZeroReadOnly });
 
     return moduleLarge;
