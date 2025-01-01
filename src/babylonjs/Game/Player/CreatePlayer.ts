@@ -1,5 +1,5 @@
 import { Scene } from '@babylonjs/core/scene';
-import { Axis, Vector3 } from '@babylonjs/core/Maths';
+import { Vector3 } from '@babylonjs/core/Maths';
 import {
     PhysicsAggregate,
     PhysicsMotionType,
@@ -8,18 +8,16 @@ import {
 import '@babylonjs/core/Loading/Plugins/babylonFileLoader';
 import { SceneLoader } from '@babylonjs/core/Loading';
 import { Mesh, GroundMesh, AbstractMesh, CreateCapsule } from '@babylonjs/core/Meshes';
-import { Ray } from '@babylonjs/core/Culling';
 import createCameras, { mapPlayerCamera, switchCameras } from './Cameras.ts';
-import { PickingInfo } from '@babylonjs/core/Collisions';
-import PlayerSounds from './Sounds.ts';
 import PlayerAnimations from './Animations.ts';
 import { GRAVITY_ON_LAND } from '../../Utils/EnablePhysics.ts';
 import Directions from './directions.enum.ts';
+import pickFloorType from './Picking.ts';
+import MovementSounds from './MovementSounds.ts';
 
 export interface PlayerMesh extends Mesh {
     playerPhysics: PhysicsAggregate;
     isMoving: boolean;
-    isMovingSoundOn: boolean;
     isFalling: boolean;
     walkingOnMeshName: string;
     interactingWithMeshName: string | null;
@@ -89,10 +87,11 @@ const CreatePlayer = async (
     const playerSkeleton = skeletons[0];
     const animations = PlayerAnimations(player, playerSkeleton);
 
-    player.isMoving = false;
-    player.onMoving = ({ direction, isRunning } : { direction?: string, isRunning?: boolean }): void => {
-        player.isMoving = true;
+    animations.actions.onIdle();
 
+    const movementSounds = MovementSounds(player, ground, ice, structures);
+
+    player.onMoving = ({ direction, isRunning } : { direction?: string, isRunning?: boolean }): void => {
         if (direction === Directions.FORWARD) {
             animations.actions.onWalkingForward(isRunning);
         }
@@ -108,159 +107,20 @@ const CreatePlayer = async (
         if (direction === Directions.RIGHT) {
             animations.actions.onStrifeRight(isRunning);
         }
+
+        pickFloorType(player, ground, ice, structures);
+        movementSounds.moving();
     };
     player.onTouchDown = (): void => {
-        console.log('Touch Down!')
+        pickFloorType(player, ground, ice, structures);
+        movementSounds.touchDown();
     };
-
-    // player.isMovingSoundOn = false;
-    // player.walkingOnMeshName = ground.name;
-
-    // const sounds = PlayerSounds(scene);
-
-    // const pickFloorType = (): PickingInfo | null => {
-    //     const ray = new Ray(
-    //         player.position,
-    //         new Vector3(0, -1, 0),
-    //         8
-    //     );
-    //     const predicate = (mesh: AbstractMesh) => {
-    //         return [
-    //             ice.name,
-    //             structures.mainHall.name
-    //         ].includes(mesh.name);
-    //     };
-    //
-    //     const pick = scene.pickWithRay(ray, predicate, true);
-    //
-    //     if (pick?.hit) {
-    //         player.walkingOnMeshName = pick?.pickedMesh?.name || ground.name;
-    //     } else {
-    //         player.walkingOnMeshName = ground.name;
-    //     }
-    //
-    //     return pick;
-    // };
-    //
-    // const pickObjectInteraction = (): PickingInfo | null => {
-    //     const ray = new Ray(
-    //         player.position,
-    //         new Vector3(0, 0, -1),
-    //         5
-    //     );
-    //     const predicate = (mesh: AbstractMesh) => {
-    //         return ![
-    //             player.name,
-    //             ground.name,
-    //             ice.name,
-    //             structures.mainHall.name
-    //         ].includes(mesh.name);
-    //     };
-    //
-    //     const pick = scene.pickWithRay(ray, predicate, true);
-    //
-    //     if (pick?.hit) {
-    //         player.interactingWithMeshName = pick?.pickedMesh?.name || null;
-    //
-    //         console.log('asd', player.interactingWithMeshName)
-    //     } else {
-    //         player.interactingWithMeshName = null;
-    //     }
-    //
-    //     return pick;
-    // };
-    //
-    // const animatePlayerIdle = () => {
-    //     player.isMovingSoundOn = false;
-    //
-    //     sounds.walkingOnSnow.stop();
-    //     sounds.walkingOnIce.stop();
-    //     sounds.walkingOnTiles.stop();
-    //     sounds.fallingOnSnow.stop();
-    //     sounds.fallingOnIce.stop();
-    //
-    //     if (!animations.idle) {
-    //         return;
-    //     }
-    //
-    //     scene.beginAnimation(
-    //         playerSkeleton,
-    //         (animations.idle).from,
-    //         (animations.idle).to,
-    //         true,
-    //         1.0
-    //     );
-    // };
-    //
-    // const animatePlayerWalking = () => {
-    //     if (!animations.walkingForward) {
-    //         return;
-    //     }
-    //
-    //     scene.beginAnimation(
-    //         playerSkeleton,
-    //         (animations.walkingForward).from + 1,
-    //         (animations.walkingForward).to,
-    //         false,
-    //         1.0,
-    //         () => {
-    //             animatePlayerIdle();
-    //         },
-    //     );
-    //
-    //     pickFloorType();
-    //     pickObjectInteraction();
-    // };
-    // const addSoundToPlayerWalking = () => {
-    //     player.isMovingSoundOn = true;
-    //
-    //     if (player.walkingOnMeshName === ice.name) {
-    //         sounds.walkingOnIce.play();
-    //     } else if (player.walkingOnMeshName === structures.mainHall.name) {
-    //         sounds.walkingOnTiles.play();
-    //     } else {
-    //         sounds.walkingOnSnow.play();
-    //     }
-    // };
-    //
-    // const animatePlayerJumping = () => {
-    //     if (!animations.jumping) {
-    //         return;
-    //     }
-    //
-    //     scene.stopAllAnimations();
-    //     scene.beginAnimation(
-    //         playerSkeleton,
-    //         (animations.jumping).from + 1,
-    //         (animations.jumping).to,
-    //         false,
-    //         1.0,
-    //         () => {
-    //             animatePlayerIdle();
-    //         }
-    //     );
-    //
-    //     pickFloorType();
-    // };
-    // const addSoundToPlayerFalling = () => {
-    //     player.isMovingSoundOn = true;
-    //
-    //     if (player.walkingOnMeshName === ice.name) {
-    //         sounds.fallingOnIce.play();
-    //     } else if (player.walkingOnMeshName === structures.mainHall.name) {
-    //         sounds.walkingOnTiles.play();
-    //     } else {
-    //         sounds.fallingOnSnow.play();
-    //     }
-    // };
-    //
-    // animatePlayerIdle();
 
     const playerMovements = {
         runningMultiplier: 1.5,
-        forwardSpeed: 60,
-        backwardSpeed: 45,
-        strafeSpeed: 45,
+        forwardSpeed: 40,
+        backwardSpeed: 35,
+        strafeSpeed: 35,
         jumpSpeed: 80,
     };
 
@@ -291,52 +151,39 @@ const CreatePlayer = async (
             currentPlayerStrafeSpeed = playerMovements.strafeSpeed * playerMovements.runningMultiplier;
         }
 
+        player.isMoving = false;
+
         const vectors = [];
 
         if (inputMap['w'] || inputMap['W']) {
             vectors.push(player.forward.scaleInPlace(-currentPlayerForwardSpeed));
+            player.isMoving = true;
             player.onMoving({ direction: Directions.FORWARD, isRunning });
-
-            // if (!player.isMovingSoundOn) {
-            //     // addSoundToPlayerWalking();
-            // }
         }
 
         if (inputMap['s'] || inputMap['S']) {
             vectors.push(player.forward.scaleInPlace(playerMovements.backwardSpeed));
+            player.isMoving = true;
             player.onMoving({ direction: Directions.BACKWARD });
-
-            // if (!player.isMovingSoundOn) {
-            //     // addSoundToPlayerWalking();
-            // }
         }
 
         if (inputMap['d'] || inputMap['D']) {
             vectors.push(player.right.scaleInPlace(-currentPlayerStrafeSpeed));
+            player.isMoving = true;
             player.onMoving({ direction: Directions.RIGHT, isRunning });
-
-            // if (!player.isMovingSoundOn) {
-            //     // addSoundToPlayerWalking();
-            // }
         }
 
         if (inputMap['a'] || inputMap['A']) {
             vectors.push(player.right.scaleInPlace(currentPlayerStrafeSpeed));
+            player.isMoving = true;
             player.onMoving({ direction: Directions.LEFT, isRunning });
-
-            // if (!player.isMovingSoundOn) {
-            //     // addSoundToPlayerWalking();
-            // }
         }
 
         if(inputMap[' '] && !player.isFalling) {
             vectors.push(player.up.scaleInPlace(playerMovements.jumpSpeed));
+            player.isMoving = true;
             player.isFalling = true;
             player.onMoving({ direction: Directions.JUMP });
-
-            // if (!player.isMovingSoundOn) {
-            //     // addSoundToPlayerFalling();
-            // }
         }
 
         if (vectors.length) {
@@ -363,6 +210,7 @@ const CreatePlayer = async (
         scene.stopAllAnimations();
         player.isMoving = false;
         animations.actions.onStopAllAnimations();
+        movementSounds.stop();
     };
 
     const { firstViewCamera, thirdViewCamera } = createCameras(scene, player);

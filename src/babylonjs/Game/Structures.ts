@@ -7,10 +7,15 @@ import { Vector3 } from '@babylonjs/core/Maths';
 
 export const STRUCTURES_FRICTION = 0.6;
 
+enum StructureName {
+    DOME = 'Dome',
+    MODULE_LARGE = 'ModuleLarge',
+}
+
 const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
     const { meshes } = await SceneLoader.ImportMeshAsync('', '/', 'Dome.glb', scene);
-    const mainHall =  meshes.find(mesh => mesh.id === 'Dome') as Mesh;
+    const mainHall =  meshes.find(mesh => mesh.id === StructureName.DOME) as Mesh;
     mainHall.position.set(0, 0, 230);
 
     mainHall.position.y = ground.getHeightAtCoordinates(mainHall.position.x, mainHall.position.z) + 0.1;
@@ -33,7 +38,7 @@ const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
 const loadModuleLarge = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
     const { meshes } = await SceneLoader.ImportMeshAsync('', '/', 'ModuleLarge.glb', scene);
-    const moduleLarge =  meshes.find(mesh => mesh.id === 'ModuleLarge') as Mesh;
+    const moduleLarge =  meshes.find(mesh => mesh.id === StructureName.MODULE_LARGE) as Mesh;
     moduleLarge.position.set(250, 0, 100);
 
     moduleLarge.position.y = ground.getHeightAtCoordinates(moduleLarge.position.x, moduleLarge.position.z) + 43;
@@ -50,8 +55,8 @@ export const createStructures = (ground: GroundMesh): Promise<{
     return new Promise(async (resolve) => {
         const structures: { [key: string]: Mesh } = {};
 
-        structures['mainHall'] = await loadMainHall(ground);
-        structures['moduleLarge'] = await loadModuleLarge(ground);
+        structures[StructureName.DOME] = await loadMainHall(ground);
+        structures[StructureName.MODULE_LARGE] = await loadModuleLarge(ground);
 
         resolve({ structures });
     });
