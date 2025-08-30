@@ -6,8 +6,17 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: 'ColdEscape', // https://fcroce.github.io/ColdEscape/
   build: {
     outDir: 'docs',
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        assetFileNames: `assets/[name]-[hash][extname]`,
+        chunkFileNames: `assets/js/[name]-[hash].js`,
+        entryFileNames: `assets/js/[name]-[hash].js`,
+      },
+    },
   },
   resolve: {
     alias: {
