@@ -18,7 +18,7 @@ const MovementSounds = (
     const sounds = PlayerSounds(player.getScene());
 
     let isMovingSoundOn = false;
-    let currentFloorType = null;
+    let currentFloorType: string | null = null;
 
     const playSound = (sound: Sound) => {
         if (!isMovingSoundOn) {

@@ -79,7 +79,7 @@ const CreatePlayer = async (
     }
     player.position.set(0, groundHeightAtPlayerPosition(), -100);
 
-    player.playerPhysics = new PhysicsAggregate(player, PhysicsShapeType.CAPSULE, { mass: 1, restitution: 0, friction: 1 }, scene);
+    player.playerPhysics = new PhysicsAggregate(player, PhysicsShapeType.CAPSULE, { mass: 1, restitution: 0, friction: 0.5 }, scene);
     player.playerPhysics.body.disablePreStep = false;
     player.playerPhysics.body.setMotionType(PhysicsMotionType.DYNAMIC);
     player.playerPhysics.body.setMassProperties({ mass: 60, inertia: Vector3.ZeroReadOnly });

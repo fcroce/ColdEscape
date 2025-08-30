@@ -6,6 +6,9 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    outDir: 'docs',
+  },
   resolve: {
     alias: {
       '$components': resolve('./src/components'),
