@@ -1,1 +1,0 @@
-import{a6 as n,a7 as i}from"./index-BmmdsCZA.js";const s="KHR_mesh_quantization";class o{constructor(t){this.name=s,this.enabled=t.isExtensionUsed(s)}dispose(){}}n(s);i(s,!0,e=>new o(e));export{o as KHR_mesh_quantization};
