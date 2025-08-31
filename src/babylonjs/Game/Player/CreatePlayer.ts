@@ -14,6 +14,7 @@ import { GRAVITY_ON_LAND } from '../../Utils/EnablePhysics.ts';
 import Directions from './directions.enum.ts';
 import pickFloorType from './Picking.ts';
 import MovementSounds from './MovementSounds.ts';
+import getRootUrl from '../../Utils/RootUrl.ts';
 
 export interface PlayerMesh extends Mesh {
     playerPhysics: PhysicsAggregate;
@@ -41,7 +42,7 @@ const CreatePlayer = async (
     const {
         meshes,
         skeletons,
-    } = await SceneLoader.ImportMeshAsync('', '/ColdEscape/', 'Low_Poly_Male.babylon', scene);
+    } = await SceneLoader.ImportMeshAsync('', getRootUrl(), 'Low_Poly_Male.babylon', scene);
     const playerMeshes: { [key: string]: AbstractMesh | null } = {
         player: null,
         playerHair: null,
