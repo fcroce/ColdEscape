@@ -14,7 +14,7 @@ enum StructureName {
 
 const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
-    const { meshes } = await SceneLoader.ImportMeshAsync('', '/', 'Dome.glb', scene);
+    const { meshes } = await SceneLoader.ImportMeshAsync('', '/ColdEscape/', 'Dome.glb', scene);
     const mainHall =  meshes.find(mesh => mesh.id === StructureName.DOME) as Mesh;
     mainHall.position.set(0, 0, 230);
 
