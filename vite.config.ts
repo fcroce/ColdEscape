@@ -3,11 +3,10 @@ import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import checker from 'vite-plugin-checker'
 import vue from '@vitejs/plugin-vue'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 // https://vite.dev/config/
-export default defineConfig({
-  base: '/ColdEscape', // https://fcroce.github.io/ColdEscape/
+export default defineConfig(({ command }) => ({
+  base: command === 'serve' ? '/' : '/ColdEscape', // https://fcroce.github.io/ColdEscape/
   build: {
     outDir: 'docs',
     emptyOutDir: true,
@@ -30,18 +29,6 @@ export default defineConfig({
     checker({
       typescript: true,
     }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'public/TropicalSunnyDay',
-          dest: 'ColdEscape/TropicalSunnyDay',
-        },
-        {
-          src: 'public/Dome.glb',
-          dest: 'ColdEscape/Dome.glb',
-        },
-      ],
-    }),
   ],
   optimizeDeps: {
     include: [
@@ -57,4 +44,4 @@ export default defineConfig({
       usePolling: true
     }
   },
-})
+}))
