@@ -4,6 +4,7 @@ import { CreateBox } from '@babylonjs/core/Meshes/Builders';
 import { StandardMaterial } from '@babylonjs/core/Materials';
 import { PhysicsAggregate, PhysicsShapeType } from '@babylonjs/core/Physics';
 import { Vector3 } from '@babylonjs/core/Maths';
+import getRootUrl from '../Utils/RootUrl.ts';
 
 export const STRUCTURES_FRICTION = 0.6;
 
@@ -14,7 +15,7 @@ enum StructureName {
 
 const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
-    const { meshes } = await SceneLoader.ImportMeshAsync('', '/ColdEscape/', 'Dome.glb', scene);
+    const { meshes } = await SceneLoader.ImportMeshAsync('', getRootUrl(), 'Dome.glb', scene);
     const mainHall =  meshes.find(mesh => mesh.id === StructureName.DOME) as Mesh;
     mainHall.position.set(0, 0, 230);
 
@@ -37,7 +38,7 @@ const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
 
 const loadModuleLarge = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
-    const { meshes } = await SceneLoader.ImportMeshAsync('', '/ColdEscape/', 'ModuleLarge.glb', scene);
+    const { meshes } = await SceneLoader.ImportMeshAsync('', getRootUrl(), 'ModuleLarge.glb', scene);
     const moduleLarge =  meshes.find(mesh => mesh.id === StructureName.MODULE_LARGE) as Mesh;
     moduleLarge.position.set(250, 0, 100);
 
