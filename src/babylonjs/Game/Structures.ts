@@ -37,7 +37,7 @@ const loadMainHall = async (ground: GroundMesh): Promise<Mesh> => {
 
 const loadModuleLarge = async (ground: GroundMesh): Promise<Mesh> => {
     const scene = ground.getScene();
-    const { meshes } = await SceneLoader.ImportMeshAsync('', '/', 'ModuleLarge.glb', scene);
+    const { meshes } = await SceneLoader.ImportMeshAsync('', '/ColdEscape/', 'ModuleLarge.glb', scene);
     const moduleLarge =  meshes.find(mesh => mesh.id === StructureName.MODULE_LARGE) as Mesh;
     moduleLarge.position.set(250, 0, 100);
 

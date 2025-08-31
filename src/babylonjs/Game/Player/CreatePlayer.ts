@@ -41,7 +41,7 @@ const CreatePlayer = async (
     const {
         meshes,
         skeletons,
-    } = await SceneLoader.ImportMeshAsync('', '/', 'Low_Poly_Male.babylon', scene);
+    } = await SceneLoader.ImportMeshAsync('', '/ColdEscape/', 'Low_Poly_Male.babylon', scene);
     const playerMeshes: { [key: string]: AbstractMesh | null } = {
         player: null,
         playerHair: null,
