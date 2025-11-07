@@ -221,7 +221,9 @@ const CreatePlayer = async (
     };
 
     const onSwitchCameras = (inputMap: { [key: string]: boolean }): void => {
-        switchCameras(scene, inputMap, firstViewCamera, thirdViewCamera);
+        if (inputMap['c']) {
+            switchCameras(scene, firstViewCamera, thirdViewCamera);
+        }
     };
 
     return { player, onPlayerCamera, mapPlayerMovements, mapPlayerStopMovements, onSwitchCameras };

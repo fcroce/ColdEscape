@@ -63,20 +63,17 @@ export const mapPlayerCamera = (
 
 export const switchCameras = (
     scene: Scene,
-    inputMap: { [key: string]: boolean },
     firstViewCamera: UniversalCamera,
     thirdViewCamera: ArcRotateCamera
 ): void => {
-    if (inputMap['c']) {
-        if (scene.activeCamera?.name === 'PlayerFirstViewCamera') {
-            firstViewCamera.detachControl();
-            thirdViewCamera.attachControl(true);
-            scene.activeCamera = thirdViewCamera;
-        } else if (scene.activeCamera?.name === 'PlayerThirdViewCamera') {
-            thirdViewCamera.detachControl();
-            firstViewCamera.attachControl(true);
-            scene.activeCamera = firstViewCamera;
-        }
+    if (scene.activeCamera?.name === 'PlayerFirstViewCamera') {
+        firstViewCamera.detachControl();
+        thirdViewCamera.attachControl(true);
+        scene.activeCamera = thirdViewCamera;
+    } else if (scene.activeCamera?.name === 'PlayerThirdViewCamera') {
+        thirdViewCamera.detachControl();
+        firstViewCamera.attachControl(true);
+        scene.activeCamera = firstViewCamera;
     }
 };
 

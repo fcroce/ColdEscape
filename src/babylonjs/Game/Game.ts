@@ -75,11 +75,16 @@ export default class Game extends AbstractScene {
             onSwitchCameras,
         } = await CreatePlayer(this._scene, ground, walls, ice, structures);
 
-        keyboardManager(this._inputMap, this._scene, () => {
-            onSwitchCameras(this._inputMap);
-        }, () => {
-            mapPlayerStopMovements(this._scene as Scene);
-        });
+        keyboardManager(
+            this._inputMap,
+            this._scene,
+            () => {
+                onSwitchCameras(this._inputMap);
+            },
+            () => {
+                mapPlayerStopMovements(this._scene as Scene);
+            }
+        );
 
         this._scene.onBeforeRenderObservable.add(async () => {
             mapPlayerMovements(this._inputMap);
